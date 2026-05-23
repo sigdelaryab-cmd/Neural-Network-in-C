@@ -90,3 +90,36 @@ void print_sample(Dataset *dataset, int index) {
 
     printf("\n");
 }
+
+void print_sample_stats(Dataset *dataset, int index) {
+    if (index < 0 || index >= dataset->size) {
+        printf("Error: Invalid sample index.\n");
+        return;
+    }
+
+    int nonzero_count = 0;
+    double min_value = dataset->images[index][0];
+    double max_value = dataset->images[index][0];
+
+    for (int i = 0; i < INPUT_SIZE; i++) {
+        double value = dataset->images[index][i];
+
+        if (value != 0.0) {
+            nonzero_count++;
+        }
+
+        if (value < min_value) {
+            min_value = value;
+        }
+
+        if (value > max_value) {
+            max_value = value;
+        }
+    }
+
+    printf("Sample index: %d\n", index);
+    printf("Label: %d\n", dataset->labels[index]);
+    printf("Nonzero pixels: %d\n", nonzero_count);
+    printf("Min pixel value: %.3f\n", min_value);
+    printf("Max pixel value: %.3f\n", max_value);
+}
