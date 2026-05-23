@@ -24,7 +24,7 @@ The neural network will use:
 - Optimizer: Mini-batch SGD
 
 ## Folder Structure
-
+```text
 src/        Source files
 include/    Header files
 data/       MNIST CSV files
