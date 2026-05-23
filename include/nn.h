@@ -56,4 +56,5 @@ void accumulate_gradients(Gradients *total, Gradients *local);
 void zero_gradients(Gradients *grad);
 void apply_gradients(NeuralNetwork *net, Gradients *grad, double learning_rate, int batch_size);
 
+
 #endif

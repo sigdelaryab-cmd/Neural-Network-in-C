@@ -1,6 +1,6 @@
 # Parallel Neural Network Training
 
-Our goal is to compare sequential training with OpenMP parallel training using metrics such as runtime, speedup, and accuracy.This project implements a feedforward neural network from scratch in C and parallelizes mini-batch training using OpenMP.
+Our goal is to compare sequential training with OpenMP parallel training using metrics such as runtime, speedup, and accuracy. This project implements a feedforward neural network from scratch in C and parallelizes mini-batch training using OpenMP.
 
 ## Project Goal
 
@@ -24,7 +24,7 @@ The neural network will use:
 - Optimizer: Mini-batch SGD
 
 ## Folder Structure
-
+```text
 src/        Source files
 include/    Header files
 data/       MNIST CSV files
