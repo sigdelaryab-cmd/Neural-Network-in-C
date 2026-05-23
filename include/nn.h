@@ -9,7 +9,7 @@ typedef struct {
   // Layer 1 : Input layer to hidden layer
 
   double W1 [HIDDEN_SIZE][INPUT_SIZE]; // matrix for the nodes going from the input layer to the hidden layer
-  double b1 [HIDDEN_SIZ]; // matrix for the bias values to be added to each node in the hidden layer
+  double b1 [HIDDEN_SIZE]; // matrix for the bias values to be added to each node in the hidden layer
 
   // Layer 2 : Hidden layer to output layer
   double W2 [OUTPUT_SIZE][HIDDEN_SIZE]; // matrix for the nodes going from the hidden layer to the output layer
@@ -47,11 +47,7 @@ double compute_loss(double a2[OUTPUT_SIZE], int label);
 // Prediction
 int predict(NeuralNetwork *net, double input[INPUT_SIZE]);
 
-// Backward pass
-void backward(NeuralNetwork *net, double input[INPUT_SIZE], int label, 
-              double learning_rate);
-
-// Gradient accumulation (for mini-batch training)
+// Backward Propagation (mini-batch training)
 void accumulate_gradients(Gradients *total, Gradients *local);
 void zero_gradients(Gradients *grad);
 void apply_gradients(NeuralNetwork *net, Gradients *grad, double learning_rate, int batch_size);
