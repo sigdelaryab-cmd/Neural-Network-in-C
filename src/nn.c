@@ -7,7 +7,6 @@ void init_network(NeuralNetwork *net) {
     srand(time(NULL));
 
     // Xavier initialization for W1
-    // limit = 1 / sqrt(fan_in) where fan_in = INPUT_SIZE
     double limit1 = 1.0 / sqrt(INPUT_SIZE);
     for (int i = 0; i < HIDDEN_SIZE; i++) {
         for (int j = 0; j < INPUT_SIZE; j++) {
@@ -17,7 +16,6 @@ void init_network(NeuralNetwork *net) {
     }
 
     // Xavier initialization for W2
-    // limit = 1 / sqrt(fan_in) where fan_in = HIDDEN_SIZE
     double limit2 = 1.0 / sqrt(HIDDEN_SIZE);
     for (int i = 0; i < OUTPUT_SIZE; i++) {
         for (int j = 0; j < HIDDEN_SIZE; j++) {
@@ -39,12 +37,12 @@ void relu(double *z, double *a, int size) {
 }
 
 double relu_derivative(double z) {
-    // ReLU'(z) = 1 if z > 0, else 0
+  
     return (z > 0) ? 1.0 : 0.0;
 }
 
 void softmax(double *z, double *a, int size) {
-    // Subtract max for numerical stability before exp
+    
     double max_z = z[0];
     for (int i = 1; i < size; i++) {
         if (z[i] > max_z) max_z = z[i];
@@ -89,7 +87,6 @@ void forward(NeuralNetwork *net, double input[INPUT_SIZE]) {
 
 double compute_loss(double a2[OUTPUT_SIZE], int label) {
     // Categorical cross-entropy: L = -log(a2[label])
-    // Epsilon prevents log(0) if probability rounds to zero
     double epsilon = 1e-7;
     double prob = a2[label];
     if (prob < epsilon) prob = epsilon;
@@ -97,7 +94,7 @@ double compute_loss(double a2[OUTPUT_SIZE], int label) {
 }
 
 int predict(NeuralNetwork *net, double input[INPUT_SIZE]) {
-    // Run forward pass then return index of highest probability
+ 
     forward(net, input);
 
     int best = 0;
@@ -131,7 +128,6 @@ void compute_gradients(NeuralNetwork *net, double input[INPUT_SIZE],
     double delta1[HIDDEN_SIZE];
 
     // Output delta: δ2 = a2 - y_onehot
-    // Simplified gradient from softmax + cross-entropy combined
     for (int i = 0; i < OUTPUT_SIZE; i++) {
         delta2[i] = net->a2[i];
         if (i == label) delta2[i] -= 1.0;
@@ -165,7 +161,6 @@ void compute_gradients(NeuralNetwork *net, double input[INPUT_SIZE],
 
 void accumulate_gradients(Gradients *total, Gradients *local) {
     // Merge a thread's local gradients into the global total
-    // Used during OpenMP parallel mini-batch training
     for (int i = 0; i < HIDDEN_SIZE; i++) {
         total->db1[i] += local->db1[i];
         for (int j = 0; j < INPUT_SIZE; j++) {
