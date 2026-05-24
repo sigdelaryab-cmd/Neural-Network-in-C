@@ -50,6 +50,7 @@ int predict(NeuralNetwork *net, double input[INPUT_SIZE]);
 // Backward Propagation (mini-batch training)
 void accumulate_gradients(Gradients *total, Gradients *local);
 void zero_gradients(Gradients *grad);
+void compute_gradients(NeuralNetwork *net, double input[INPUT_SIZE],int label, Gradients *grad);
 void apply_gradients(NeuralNetwork *net, Gradients *grad, double learning_rate, int batch_size);
 
 
