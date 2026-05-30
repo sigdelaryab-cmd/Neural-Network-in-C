@@ -1,29 +1,49 @@
 #include <stdio.h>
+#include <omp.h>
+
 #include "data.h"
 #include "nn.h"
 #include "train.h"
 
 int main() {
-    Dataset train_data = load_mnist_csv("data/mnist_train.csv", 1000);
-    Dataset test_data = load_mnist_csv("data/mnist_test.csv", 1000);
-
-    printf("Loaded %d training samples.\n", train_data.size);
-    printf("Loaded %d testing samples.\n", test_data.size);
-
-    NeuralNetwork net;
-    init_network(&net);
-
-    double initial_accuracy = evaluate_accuracy(&net, &test_data);
-    printf("Initial test accuracy: %.2f%%\n", initial_accuracy * 100.0);
+    int train_samples = 60000;
+    int test_samples = 10000;
 
     int epochs = 5;
     int batch_size = 32;
     double learning_rate = 0.05;
 
+    Dataset train_data = load_mnist_csv("data/mnist_train.csv", train_samples);
+    Dataset test_data = load_mnist_csv("data/mnist_test.csv", test_samples);
+
+    printf("Sequential Neural Network Training\n");
+    printf("Training samples: %d\n", train_data.size);
+    printf("Testing samples: %d\n", test_data.size);
+    printf("Epochs: %d\n", epochs);
+    printf("Batch size: %d\n", batch_size);
+    printf("Learning rate: %.4f\n", learning_rate);
+    printf("\n");
+
+    NeuralNetwork net;
+    init_network(&net);
+
+    double initial_accuracy = evaluate_accuracy(&net, &test_data);
+    printf("Initial test accuracy: %.2f%%\n\n", initial_accuracy * 100.0);
+
+    double start_time = omp_get_wtime();
+
     train_serial(&net, &train_data, epochs, batch_size, learning_rate);
 
+    double end_time = omp_get_wtime();
+
+    double serial_runtime = end_time - start_time;
+
     double final_accuracy = evaluate_accuracy(&net, &test_data);
+
+    printf("\nSerial training summary:\n");
+    printf("Initial test accuracy: %.2f%%\n", initial_accuracy * 100.0);
     printf("Final test accuracy: %.2f%%\n", final_accuracy * 100.0);
+    printf("Serial training runtime: %.6f seconds\n", serial_runtime);
 
     free_dataset(&train_data);
     free_dataset(&test_data);

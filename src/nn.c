@@ -4,7 +4,7 @@
 #include <time.h>
 
 void init_network(NeuralNetwork *net) {
-    srand(time(NULL));
+    srand(799343);
 
     // Xavier initialization for W1
     double limit1 = 1.0 / sqrt(INPUT_SIZE);
