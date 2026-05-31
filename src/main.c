@@ -8,7 +8,7 @@
 int main() {
     int train_samples = 60000;
     int test_samples = 10000;
-    int num_threads = 4;
+    int num_threads = 8;
 
     int epochs = 5;
     int batch_size = 32;
@@ -41,14 +41,15 @@ int main() {
     
     double end_time = omp_get_wtime();
 
-    double serial_runtime = end_time - start_time;
+    double runtime = end_time - start_time;
 
     double final_accuracy = evaluate_accuracy(&net, &test_data);
 
     printf("\nSerial training summary:\n");
     printf("Initial test accuracy: %.2f%%\n", initial_accuracy * 100.0);
     printf("Final test accuracy: %.2f%%\n", final_accuracy * 100.0);
-    printf("Serial training runtime: %.6f seconds\n", serial_runtime);
+    // printf("Serial training runtime: %.6f seconds\n", runtime);
+    printf("Parallel training runtime: %.6f seconds\n", runtime);
 
     free_dataset(&train_data);
     free_dataset(&test_data);
