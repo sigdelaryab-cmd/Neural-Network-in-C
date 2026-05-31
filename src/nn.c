@@ -48,7 +48,6 @@ void softmax(double *z, double *a, int size) {
         if (z[i] > max_z) max_z = z[i];
     }
 
-    // Compute exp(z[i] - max_z) and sum
     double sum = 0.0;
     for (int i = 0; i < size; i++) {
         a[i] = exp(z[i] - max_z);
@@ -85,7 +84,7 @@ void forward(NeuralNetwork *net, double input[INPUT_SIZE]) {
     softmax(net->z2, net->a2, OUTPUT_SIZE);
 }
 
-// OpenMP Forward
+// OpenMP Forward (uses the ForwardCache struct for each local thread)
 void forward_cached(NeuralNetwork *net, double input[INPUT_SIZE],
                     ForwardCache *cache) {
     // Layer 1: z1 = W1 * input + b1
@@ -114,7 +113,7 @@ void forward_cached(NeuralNetwork *net, double input[INPUT_SIZE],
 }
 
 double compute_loss(double a2[OUTPUT_SIZE], int label) {
-    // Categorical cross-entropy: L = -log(a2[label])
+    // Categorical cross-entropy
     double epsilon = 1e-7;
     double prob = a2[label];
     if (prob < epsilon) prob = epsilon;
@@ -154,8 +153,8 @@ void compute_gradients(NeuralNetwork *net, double input[INPUT_SIZE],
                        int label, Gradients *grad) {
     double delta2[OUTPUT_SIZE];
     double delta1[HIDDEN_SIZE];
-
-    // Output delta: δ2 = a2 - y_onehot
+    
+    // Output delta
     for (int i = 0; i < OUTPUT_SIZE; i++) {
         delta2[i] = net->a2[i];
         if (i == label) delta2[i] -= 1.0;
@@ -169,7 +168,7 @@ void compute_gradients(NeuralNetwork *net, double input[INPUT_SIZE],
         }
     }
 
-    // Hidden delta: δ1 = (W2^T * δ2) ⊙ ReLU'(z1)
+    // Hidden delta
     for (int j = 0; j < HIDDEN_SIZE; j++) {
         delta1[j] = 0.0;
         for (int i = 0; i < OUTPUT_SIZE; i++) {
@@ -195,7 +194,7 @@ void compute_gradients_cached(NeuralNetwork *net, ForwardCache *cache,
     double delta2[OUTPUT_SIZE];
     double delta1[HIDDEN_SIZE];
 
-    // Output delta: delta2 = a2 - y_onehot
+    // Output delta
     for (int i = 0; i < OUTPUT_SIZE; i++) {
         delta2[i] = cache->a2[i];
 
@@ -213,7 +212,7 @@ void compute_gradients_cached(NeuralNetwork *net, ForwardCache *cache,
         }
     }
 
-    // Hidden delta: delta1 = (W2^T * delta2) * ReLU'(z1)
+    // Hidden delta
     for (int j = 0; j < HIDDEN_SIZE; j++) {
         delta1[j] = 0.0;
 
