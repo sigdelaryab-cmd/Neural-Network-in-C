@@ -4,7 +4,7 @@
 #include <time.h>
 
 void init_network(NeuralNetwork *net) {
-    srand(799343);
+  srand(800340);
 
     // Xavier initialization for W1
     double limit1 = 1.0 / sqrt(INPUT_SIZE);
@@ -85,6 +85,34 @@ void forward(NeuralNetwork *net, double input[INPUT_SIZE]) {
     softmax(net->z2, net->a2, OUTPUT_SIZE);
 }
 
+// OpenMP Forward
+void forward_cached(NeuralNetwork *net, double input[INPUT_SIZE],
+                    ForwardCache *cache) {
+    // Layer 1: z1 = W1 * input + b1
+    for (int i = 0; i < HIDDEN_SIZE; i++) {
+        cache->z1[i] = net->b1[i];
+
+        for (int j = 0; j < INPUT_SIZE; j++) {
+            cache->z1[i] += net->W1[i][j] * input[j];
+        }
+    }
+
+    // Apply ReLU: a1 = ReLU(z1)
+    relu(cache->z1, cache->a1, HIDDEN_SIZE);
+
+    // Layer 2: z2 = W2 * a1 + b2
+    for (int i = 0; i < OUTPUT_SIZE; i++) {
+        cache->z2[i] = net->b2[i];
+
+        for (int j = 0; j < HIDDEN_SIZE; j++) {
+            cache->z2[i] += net->W2[i][j] * cache->a1[j];
+        }
+    }
+
+    // Apply softmax: a2 = softmax(z2)
+    softmax(cache->z2, cache->a2, OUTPUT_SIZE);
+}
+
 double compute_loss(double a2[OUTPUT_SIZE], int label) {
     // Categorical cross-entropy: L = -log(a2[label])
     double epsilon = 1e-7;
@@ -153,6 +181,53 @@ void compute_gradients(NeuralNetwork *net, double input[INPUT_SIZE],
     // Accumulate dW1 and db1
     for (int i = 0; i < HIDDEN_SIZE; i++) {
         grad->db1[i] += delta1[i];
+        for (int j = 0; j < INPUT_SIZE; j++) {
+            grad->dW1[i][j] += delta1[i] * input[j];
+        }
+    }
+}
+
+//OpenMP compute gradients
+
+void compute_gradients_cached(NeuralNetwork *net, ForwardCache *cache,
+                              double input[INPUT_SIZE], int label,
+                              Gradients *grad) {
+    double delta2[OUTPUT_SIZE];
+    double delta1[HIDDEN_SIZE];
+
+    // Output delta: delta2 = a2 - y_onehot
+    for (int i = 0; i < OUTPUT_SIZE; i++) {
+        delta2[i] = cache->a2[i];
+
+        if (i == label) {
+            delta2[i] -= 1.0;
+        }
+    }
+
+    // Accumulate dW2 and db2
+    for (int i = 0; i < OUTPUT_SIZE; i++) {
+        grad->db2[i] += delta2[i];
+
+        for (int j = 0; j < HIDDEN_SIZE; j++) {
+            grad->dW2[i][j] += delta2[i] * cache->a1[j];
+        }
+    }
+
+    // Hidden delta: delta1 = (W2^T * delta2) * ReLU'(z1)
+    for (int j = 0; j < HIDDEN_SIZE; j++) {
+        delta1[j] = 0.0;
+
+        for (int i = 0; i < OUTPUT_SIZE; i++) {
+            delta1[j] += net->W2[i][j] * delta2[i];
+        }
+
+        delta1[j] *= relu_derivative(cache->z1[j]);
+    }
+
+    // Accumulate dW1 and db1
+    for (int i = 0; i < HIDDEN_SIZE; i++) {
+        grad->db1[i] += delta1[i];
+
         for (int j = 0; j < INPUT_SIZE; j++) {
             grad->dW1[i][j] += delta1[i] * input[j];
         }

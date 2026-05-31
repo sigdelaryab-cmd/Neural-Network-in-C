@@ -8,6 +8,7 @@
 int main() {
     int train_samples = 60000;
     int test_samples = 10000;
+    int num_threads = 4;
 
     int epochs = 5;
     int batch_size = 32;
@@ -16,7 +17,9 @@ int main() {
     Dataset train_data = load_mnist_csv("data/mnist_train.csv", train_samples);
     Dataset test_data = load_mnist_csv("data/mnist_test.csv", test_samples);
 
-    printf("Sequential Neural Network Training\n");
+    // printf("Sequential Neural Network Training\n");
+    printf("OpenMP Neural Network Training\n");
+    printf("Threads: %d\n", num_threads);
     printf("Training samples: %d\n", train_data.size);
     printf("Testing samples: %d\n", test_data.size);
     printf("Epochs: %d\n", epochs);
@@ -32,8 +35,10 @@ int main() {
 
     double start_time = omp_get_wtime();
 
-    train_serial(&net, &train_data, epochs, batch_size, learning_rate);
+    // train_serial(&net, &train_data, epochs, batch_size, learning_rate);
+    train_openmp(&net, &train_data, epochs, batch_size, learning_rate, num_threads);
 
+    
     double end_time = omp_get_wtime();
 
     double serial_runtime = end_time - start_time;

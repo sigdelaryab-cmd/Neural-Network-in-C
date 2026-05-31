@@ -29,12 +29,28 @@ typedef struct {
   double db2[OUTPUT_SIZE];
 } Gradients;
 
+typedef struct {
+  double z1[HIDDEN_SIZE];
+  double a1[HIDDEN_SIZE];
+  double z2[OUTPUT_SIZE];
+  double a2[OUTPUT_SIZE];
+} ForwardCache;
+
 // Initialization
 void init_network(NeuralNetwork *net);
 void free_network(NeuralNetwork *net);
 
 // Forward pass
 void forward(NeuralNetwork *net, double input[INPUT_SIZE]);
+
+// OpenMP forward pass using thread-local cache
+void forward_cached(NeuralNetwork *net, double input[INPUT_SIZE],
+                    ForwardCache *cache);
+
+// OpenMP gradient computation using thread-local cache
+void compute_gradients_cached(NeuralNetwork *net, ForwardCache *cache,
+                              double input[INPUT_SIZE], int label,
+                              Gradients *grad);
 
 // Activation functions
 void relu(double *z, double *a, int size);
