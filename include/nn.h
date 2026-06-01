@@ -34,7 +34,7 @@ typedef struct {
   double a1[HIDDEN_SIZE];
   double z2[OUTPUT_SIZE];
   double a2[OUTPUT_SIZE];
-} ForwardCache;
+} ForwardCache;   // Cache for forward pass each local thread does
 
 // Initialization
 void init_network(NeuralNetwork *net);
