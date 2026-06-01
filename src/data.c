@@ -9,6 +9,7 @@ Dataset load_mnist_csv(const char *filename, int max_samples) {
     Dataset dataset;
     dataset.size = 0;
 
+    // Allocating space for image pointers & labels
     dataset.images = malloc(max_samples * sizeof(double *));
     dataset.labels = malloc(max_samples * sizeof(int));
 
@@ -26,6 +27,7 @@ Dataset load_mnist_csv(const char *filename, int max_samples) {
 
     char line[LINE_SIZE];
 
+    // Read each row of CSV until max_samples row is reached, we used max_samples in the beginning to see if the model trained on a small sample dataset before diving into the entire dataset
     while (dataset.size < max_samples && fgets(line, LINE_SIZE, file) != NULL) {
         dataset.images[dataset.size] = malloc(INPUT_SIZE * sizeof(double));
 
@@ -34,6 +36,7 @@ Dataset load_mnist_csv(const char *filename, int max_samples) {
             exit(1);
         }
 
+        // First value in each row is the label of the digit
         char *token = strtok(line, ",");
 
         if (token == NULL) {
@@ -42,6 +45,7 @@ Dataset load_mnist_csv(const char *filename, int max_samples) {
 
         dataset.labels[dataset.size] = atoi(token);
 
+        // Remaining 784 values are individual pixel values
         for (int i = 0; i < INPUT_SIZE; i++) {
             token = strtok(NULL, ",");
 
@@ -50,6 +54,7 @@ Dataset load_mnist_csv(const char *filename, int max_samples) {
                 exit(1);
             }
 
+            // Normalize pixel values from 0-255 to 0-1
             dataset.images[dataset.size][i] = atof(token) / 255.0;
         }
 
@@ -62,10 +67,12 @@ Dataset load_mnist_csv(const char *filename, int max_samples) {
 }
 
 void free_dataset(Dataset *dataset) {
+    // free each image row
     for (int i = 0; i < dataset->size; i++) {
         free(dataset->images[i]);
     }
 
+    //free main arrays
     free(dataset->images);
     free(dataset->labels);
 
