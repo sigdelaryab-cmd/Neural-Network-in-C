@@ -2,7 +2,7 @@
 #include "train.h"
 #include <omp.h>
 
-
+// compute the model accuracy on a given dataset
 double evaluate_accuracy(NeuralNetwork *net, Dataset *data) {
     int correct = 0;
 
@@ -17,15 +17,18 @@ double evaluate_accuracy(NeuralNetwork *net, Dataset *data) {
     return (double)correct / data->size;
 }
 
+// sequential mini-batch training
 void train_serial(NeuralNetwork *net, Dataset *train_data,
                   int epochs, int batch_size, double learning_rate) {
     for (int epoch = 0; epoch < epochs; epoch++) {
         double total_loss = 0.0;
         int samples_seen = 0;
 
+        // Processing the training data one batch at a time
         for (int start = 0; start < train_data->size; start += batch_size) {
             int current_batch_size = batch_size;
 
+            // Handling the last batch if it is smaller than the batch size
             if (start + current_batch_size > train_data->size) {
                 current_batch_size = train_data->size - start;
             }
@@ -33,6 +36,7 @@ void train_serial(NeuralNetwork *net, Dataset *train_data,
             Gradients total_grad;
             zero_gradients(&total_grad);
 
+            // Computing gradients for each sample in the batch
             for (int i = start; i < start + current_batch_size; i++) {
                 forward(net, train_data->images[i]);
 
@@ -46,6 +50,7 @@ void train_serial(NeuralNetwork *net, Dataset *train_data,
                 samples_seen++;
             }
 
+            // Updating weights once using the average batch gradient
             apply_gradients(net, &total_grad, learning_rate, current_batch_size);
         }
 
@@ -60,6 +65,7 @@ void train_serial(NeuralNetwork *net, Dataset *train_data,
     }
 }
 
+// OpenMP mini batch training
 void train_openmp(NeuralNetwork *net, Dataset *train_data,
                   int epochs, int batch_size,
                   double learning_rate, int num_threads) {
@@ -79,6 +85,7 @@ void train_openmp(NeuralNetwork *net, Dataset *train_data,
 
             double batch_loss = 0.0;
 
+            // parallelizing work across samples in the current mini-batch
             #pragma omp parallel num_threads(num_threads)
             {
                 ForwardCache cache;
@@ -87,6 +94,7 @@ void train_openmp(NeuralNetwork *net, Dataset *train_data,
 
                 double local_loss = 0.0;
 
+                // Each thread processes a part of the mini batch
                 #pragma omp for
                 for (int i = start; i < start + current_batch_size; i++) {
                     forward_cached(net, train_data->images[i], &cache);
@@ -100,6 +108,7 @@ void train_openmp(NeuralNetwork *net, Dataset *train_data,
                                              &local_grad);
                 }
 
+                // Combining each thread's local gradients into the batch gradient
                 #pragma omp critical
                 {
                     accumulate_gradients(&total_grad, &local_grad);
@@ -110,6 +119,7 @@ void train_openmp(NeuralNetwork *net, Dataset *train_data,
             total_loss += batch_loss;
             samples_seen += current_batch_size;
 
+            // Update weights once after combining gradients from all threads
             apply_gradients(net, &total_grad, learning_rate, current_batch_size);
         }
 
